@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - develop
+      - 'feature/**'
 
 jobs:
-  validate:
+  deploy:
     runs-on: ubuntu-latest
 
     env:
@@ -26,5 +28,14 @@ jobs:
       - name: Validate Bundle
         run: databricks bundle validate
 
-      - name: Deploy Bundle
+      - name: Deploy DEV
+        if: startsWith(github.ref_name, 'feature/')
         run: databricks bundle deploy --target dev
+
+      - name: Deploy QA
+        if: github.ref_name == 'develop'
+        run: databricks bundle deploy --target qa
+
+      - name: Deploy PROD
+        if: github.ref_name == 'main'
+        run: databricks bundle deploy --target prod
