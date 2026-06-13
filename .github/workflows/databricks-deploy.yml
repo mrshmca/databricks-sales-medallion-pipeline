@@ -16,7 +16,8 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -24,6 +25,12 @@ jobs:
       - name: Install Databricks CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      - name: Sync Dependencies
+        run: uv sync
+
+      - name: Run Unit Tests
+        run: uv run pytest tests/
 
       - name: Validate Bundle
         run: databricks bundle validate
