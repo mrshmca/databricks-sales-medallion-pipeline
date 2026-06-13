@@ -1,14 +1,28 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import col
-
 @dp.table(
     name="silver_sales",
-    comment="Cleaned taxi trips"
+    comment="Cleaned sales data"
 )
 def silver_sales():
-    return (
-        spark.read.table("bronze_sales")
-        .filter(col("fare_amount") > 0)
-        .filter(col("trip_distance") > 0)
-        .dropDuplicates()
-    )
+    return spark.sql("""
+
+    SELECT
+        o.order_id,
+        o.customer_id,
+        c.customer_name,
+        c.city,
+        p.product_name,
+        p.category,
+        CAST(p.price AS DOUBLE) AS price,
+        CAST(o.quantity AS INT) AS quantity,
+        CAST(p.price AS DOUBLE) * CAST(o.quantity AS INT) AS sales_amount,
+        o.order_date
+
+    FROM bronze_orders o
+    JOIN bronze_customers c
+      ON o.customer_id = c.customer_id
+
+    JOIN bronze_products p
+      ON o.product_id = p.product_id
+
+    """)

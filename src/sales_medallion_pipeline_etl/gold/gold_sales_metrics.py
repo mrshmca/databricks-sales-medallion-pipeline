@@ -1,17 +1,18 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import sum, count, avg
-# CI/CD Test1
-@dp.table(
-    name="gold_sales_metrics",
-    comment="Business metrics"
-)
+
+@dp.table(name="gold_sales_metrics")
 def gold_sales_metrics():
-    return (
-        spark.read.table("silver_sales")
-        .groupBy("pickup_zip")
-        .agg(
-            sum("fare_amount").alias("total_revenue"),
-            count("*").alias("trip_count"),
-            avg("fare_amount").alias("avg_fare")
-        )
-    )
+
+    return spark.sql("""
+
+    SELECT
+        city,
+        SUM(sales_amount) AS total_revenue,
+        COUNT(*) AS total_orders,
+        AVG(sales_amount) AS avg_order_value
+
+    FROM silver_sales
+
+    GROUP BY city
+
+    """)
