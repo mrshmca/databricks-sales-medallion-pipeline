@@ -3,7 +3,7 @@
 resources:
   pipelines:
     sales_medallion_pipeline_etl:
-      name: sales_medallion_pipeline_etl
+      name: ${bundle.target}_sales_medallion_pipeline_etl
       catalog: ${var.catalog}
       schema: ${var.schema}
       serverless: true

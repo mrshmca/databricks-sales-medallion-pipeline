@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - develop
+      - 'feature/**'
 
 jobs:
-  validate:
+  deploy:
     runs-on: ubuntu-latest
 
     env:
@@ -14,7 +16,8 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -23,8 +26,23 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
 
+      - name: Sync Dependencies
+        run: uv sync
+
+      - name: Run Unit Tests
+        run: uv run pytest tests/
+
       - name: Validate Bundle
         run: databricks bundle validate
 
-      - name: Deploy Bundle
+      - name: Deploy DEV
+        if: startsWith(github.ref_name, 'feature/')
         run: databricks bundle deploy --target dev
+
+      - name: Deploy QA
+        if: github.ref_name == 'develop'
+        run: databricks bundle deploy --target qa
+
+      - name: Deploy PROD
+        if: github.ref_name == 'main'
+        run: databricks bundle deploy --target prod
